@@ -1,0 +1,24 @@
+Sub AddPlusBeforeTextAndConvertToNumber()
+    Dim ws As Worksheet
+    Dim targetCol As Range
+    Dim cell As Range
+    
+    ' Set the worksheet to the active sheet
+    Set ws = ActiveSheet
+    
+    ' Define the target column range (change "A:A" to your desired column)
+    Set targetCol = ws.Range("M1", ws.Cells(ws.Rows.Count, "M").End(xlUp))
+    
+    ' Loop through each cell in the target column
+    For Each cell In targetCol
+        ' Check if the cell contains a number
+        If IsNumeric(cell.Value) Then
+            ' Add "+" before the text in the cell
+            cell.Value = "+" & cell.Value
+        ElseIf Left(cell.Value, 1) = "+" Then
+            ' Convert the cell value to a number
+            cell.Value = Val(Mid(cell.Value, 2))
+        End If
+    Next cell
+End Sub
+
