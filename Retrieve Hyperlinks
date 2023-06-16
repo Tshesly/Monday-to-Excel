@@ -1,0 +1,32 @@
+Sub RetrieveHyperlink()
+    Dim rng As Range
+    Dim cell As Range
+    Dim sourceSheet As Worksheet
+    Dim targetSheet As Worksheet
+    Dim foundCell As Range
+    Dim hyperlinkAddress As String
+    Dim columnToSearch As Range
+    Dim columnNumber As Integer
+    
+    Set sourceSheet = ThisWorkbook.Worksheets("lists") ' Replace "lists" with the actual name of the worksheet containing the original data
+    Set targetSheet = ActiveSheet ' Set the target sheet as the active sheet
+    
+    Set rng = targetSheet.Range("J1:J400") ' Replace with the range where you will enter the text
+    
+    columnNumber = Application.InputBox("Enter the column number to search in the original data:", Type:=1)
+    Set columnToSearch = sourceSheet.Cells(1, columnNumber).EntireColumn
+    
+    For Each cell In rng
+        Set foundCell = columnToSearch.Find(cell.Value, LookIn:=xlValues, LookAt:=xlWhole) ' Look for exact match
+        
+        If Not foundCell Is Nothing Then
+            If foundCell.Hyperlinks.Count > 0 Then ' Check if the found cell has any hyperlinks
+                hyperlinkAddress = foundCell.Hyperlinks(1).Address ' Retrieve the hyperlink address from the found cell
+                If hyperlinkAddress <> "" Then ' Check if the address is not empty
+                    targetSheet.Hyperlinks.Add Anchor:=cell, Address:=hyperlinkAddress, TextToDisplay:=cell.Value ' Add the hyperlink to the current cell in the target sheet
+                End If
+            End If
+        End If
+    Next cell
+End Sub
+
