@@ -1,0 +1,90 @@
+Sub DivideTextAndCreateHyperlinks()
+    Dim originalCol As Range
+    Dim lastRow As Long
+    Dim i As Long
+    Dim textArr() As String
+    
+    ' Set the range for the original column (Column A)
+    Set originalCol = ActiveSheet.UsedRange.Columns(4)
+    
+    ' Find the last used row in the original column
+    lastRow = originalCol.Find("*", SearchOrder:=xlByRows, SearchDirection:=xlPrevious).Row
+    
+    ' Insert a column next to the original column
+    originalCol.Offset(, 1).Insert Shift:=xlToRight
+    
+    ' Loop through each cell in the original column
+    For i = 1 To lastRow
+        ' Get the text from the original column
+        Dim text As String
+        text = originalCol.Cells(i).Value
+        
+        ' Check if the text contains a "-"
+        If InStr(text, "-") > 0 Then
+            ' Split the text at the first "-" and store the parts in an array
+            textArr = Split(text, "-", 2)
+            
+            ' Write the first part back to the original column
+            originalCol.Cells(i).Value = Trim(textArr(0))
+            
+            ' Write the second part to the new column
+            Dim newCol As Range
+            Set newCol = originalCol.Cells(i).Offset(0, 1)
+            newCol.Value = Trim(textArr(1))
+            newCol.Value = WorksheetFunction.Trim(newCol.Value)
+            
+            ' Check if the text in the new column is a valid URL or email address
+            If IsValidURL(newCol.Value) Or IsEmail(newCol.Value) Then
+                ' Create a hyperlink in the original cell without changing the text
+                ActiveSheet.Hyperlinks.Add Anchor:=originalCol.Cells(i), Address:=newCol.Value, TextToDisplay:=originalCol.Cells(i).Value
+            End If
+        End If
+    Next i
+    
+    ' Clear any extra cells in the new column
+    originalCol.Cells(lastRow + 1).Offset(, 1).Resize(Rows.Count - lastRow).ClearContents
+End Sub
+
+Function IsValidURL(ByVal str As String) As Boolean
+    ' Remove leading/trailing spaces
+    str = Trim(str)
+    
+    ' Check if the string starts with "http://" or "https://"
+    If InStr(1, str, "http://", vbTextCompare) = 1 Or InStr(1, str, "https://", vbTextCompare) = 1 Then
+        ' Perform additional checks to validate the URL
+        Dim pattern As String
+        pattern = "^(https?://)?[a-zA-Z0-9]+([-.]{1}[a-zA-Z0-9]+)*\.[a-zA-Z]{2,}(:[0-9]{1,5})?(/.*)?$"
+        
+        Dim regex As Object
+        Set regex = CreateObject("VBScript.RegExp")
+        
+        With regex
+            .pattern = pattern
+            .IgnoreCase = True
+        End With
+        
+        IsValidURL = regex.Test(str)
+    Else
+        IsValidURL = False
+    End If
+End Function
+
+Function IsEmail(ByVal str As String) As Boolean
+    ' Regular expression pattern to check email format
+    Dim pattern As String
+    pattern = "^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$"
+    
+    ' Create a regular expression object
+    Dim regex As Object
+    Set regex = CreateObject("VBScript.RegExp")
+    
+    ' Set the pattern and ignore case sensitivity
+    With regex
+        .pattern = pattern
+        .IgnoreCase = True
+    End With
+    
+    ' Check if the string matches the pattern
+    IsEmail = regex.Test(str)
+End Function
+
