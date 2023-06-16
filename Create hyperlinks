@@ -1,0 +1,68 @@
+Sub CreateHyperlinks()
+    Dim ws As Worksheet
+    Dim rng As Range
+    Dim cell As Range
+    
+    ' Set the worksheet to the active sheet
+    Set ws = ActiveSheet
+    
+    ' Set the range to the used range of the worksheet
+    Set rng = ws.UsedRange
+    
+    ' Loop through each cell in the range
+    For Each cell In rng
+        ' Check if the cell value is a valid URL
+        If IsValidURL(cell.Value) Then
+            ' Create a hyperlink using the cell value
+            ws.Hyperlinks.Add Anchor:=cell, Address:=cell.Value, TextToDisplay:=cell.Value
+        ' Check if the cell value is a valid email address
+        ElseIf IsEmail(cell.Value) Then
+            ' Create a hyperlink using the "mailto" protocol and the cell value
+            ws.Hyperlinks.Add Anchor:=cell, Address:="mailto:" & cell.Value, TextToDisplay:=cell.Value
+        End If
+    Next cell
+End Sub
+
+Function IsValidURL(ByVal str As String) As Boolean
+    ' Remove leading/trailing spaces
+    str = Trim(str)
+    
+    ' Check if the string starts with "http://" or "https://"
+    If InStr(1, str, "http://", vbTextCompare) = 1 Or InStr(1, str, "https://", vbTextCompare) = 1 Then
+        ' Perform additional checks to validate the URL
+        Dim pattern As String
+        pattern = "^(https?://)?[a-zA-Z0-9]+([-.]{1}[a-zA-Z0-9]+)*\.[a-zA-Z]{2,}(:[0-9]{1,5})?(/.*)?$"
+        
+        Dim regex As Object
+        Set regex = CreateObject("VBScript.RegExp")
+        
+        With regex
+            .pattern = pattern
+            .IgnoreCase = True
+        End With
+        
+        IsValidURL = regex.Test(str)
+    Else
+        IsValidURL = False
+    End If
+End Function
+
+Function IsEmail(ByVal str As String) As Boolean
+    ' Regular expression pattern to check email format
+    Dim pattern As String
+    pattern = "^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$"
+    
+    ' Create a regular expression object
+    Dim regex As Object
+    Set regex = CreateObject("VBScript.RegExp")
+    
+    ' Set the pattern and ignore case sensitivity
+    With regex
+        .pattern = pattern
+        .IgnoreCase = True
+    End With
+    
+    ' Check if the string matches the pattern
+    IsEmail = regex.Test(str)
+End Function
+
